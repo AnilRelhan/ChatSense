@@ -2,6 +2,11 @@ import streamlit as st
 import preprocessor, helper
 import matplotlib.pyplot as plt
 import seaborn as sns
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer  # Import VADER for sentiment analysis
+# Initialize VADER Sentiment Analyzer
+nltk.download('vader_lexicon')
+sid = SentimentIntensityAnalyzer()
 
 # Set the page layout
 st.set_page_config(page_title="ChatSense", page_icon=":speech_balloon:")
@@ -147,8 +152,8 @@ if uploaded_file is not None:
         ax.set_xlabel('Time', fontsize=15)
         ax.set_ylabel('Weekdays', fontsize=15)
         helper.style_plot(ax, fig)
-        color_bar.ax.yaxis.label.set_color("white")  # Set color bar label color
-        color_bar.ax.tick_params(colors="white")  # Set color bar tick color
+        color_bar.ax.yaxis.label.set_color("black")  # Set color bar label color
+        color_bar.ax.tick_params(colors="black")  # Set color bar tick color
         st.pyplot(fig)
         
         try:
@@ -172,7 +177,7 @@ if uploaded_file is not None:
             
             ax.axis('equal')
             helper.style_plot(ax, fig)
-            ax.legend(['With Emoji', 'Without Emoji'],frameon=False, labelcolor='white')
+            ax.legend(['With Emoji', 'Without Emoji'],frameon=False, labelcolor='black')
             st.pyplot(fig)
         with col2:
             st.subheader("Emoji Sentiment Analysis😁😐😕", divider='grey')
@@ -181,5 +186,41 @@ if uploaded_file is not None:
             ax.pie(sentiment_sizes, autopct='%1.1f%%', startangle=90, colors=['#99ff99', '#66b3ff', '#ff9999'], textprops={'fontsize': 15})
             ax.axis('equal')
             helper.style_plot(ax, fig)
-            ax.legend(sentiment_count.keys(),frameon=False, labelcolor='white')
+            ax.legend(sentiment_count.keys(),frameon=False, labelcolor='black')
             st.pyplot(fig)
+    
+        # Sentiment Analysis Section
+        st.header(":blue[Text Sentiment Analysis] 😊😐😢", divider="blue")
+
+        # Filter messages for the selected user
+        if selected_user != "Overall":
+            user_df = df[df['user'] == selected_user]
+        else:
+            user_df = df
+
+        # Calculate sentiment scores for each message
+        user_df['sentiment'] = user_df['message'].apply(lambda x: sid.polarity_scores(x)['compound'])
+        user_df['sentiment_label'] = user_df['sentiment'].apply(
+            lambda x: 'Positive' if x > 0.05 else ('Negative' if x < -0.05 else 'Neutral')
+        )
+
+        # Aggregate sentiment counts
+        sentiment_counts = user_df['sentiment_label'].value_counts()
+
+        # Plot sentiment distribution as a pie chart
+        fig, ax = plt.subplots()
+        ax.pie(
+            sentiment_counts, autopct='%1.1f%%', startangle=90,
+            colors=['#66b3ff', '#99ff99', '#ff9999'], textprops={'fontsize': 7}
+        )
+
+        ax.axis('equal')
+        helper.style_plot(ax, fig)
+        ax.set_title("Sentiment Distribution", fontsize=6, color='black')  # Add title
+        # Add legend with sentiment labels
+        ax.legend(sentiment_counts.index, frameon=False, labelcolor='black', loc='upper right')
+        st.pyplot(fig)
+
+        # Display sentiment counts as a dataframe
+        st.subheader("Sentiment Counts 🔢")
+        st.dataframe(sentiment_counts)

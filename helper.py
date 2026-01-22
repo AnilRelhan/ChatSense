@@ -7,7 +7,7 @@ from collections import Counter
 
 extractor = URLExtract()
 
-def style_plot(ax, fig, spine_color='white', tick_color='white', label_color = "white"):
+def style_plot(ax, fig, spine_color='black', tick_color='black', label_color = "black"):
     ax.tick_params(colors=tick_color)  # Set tick color
     ax.spines['bottom'].set_color(spine_color)  # Set bottom spine color
     ax.spines['left'].set_color(spine_color)  # Set left spine color

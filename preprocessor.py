@@ -92,5 +92,5 @@ def preprocess(data):
     
     df["clean_message"] = df["message"].apply(clean_message)
     df["is_empty_after_cleaning"] = df["clean_message"] == ""
-    
+
     return df
